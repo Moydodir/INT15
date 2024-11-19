@@ -1,0 +1,6 @@
+
+ 1      name="ether2" default-name="ether2" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1598 max-l2mtu=2028
+        mac-address=64:D1:54:87:2D:1F ifname="eth1" ifindex=9 id=2 link-downs=0
+
+ 2      name="ether3" default-name="ether3" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1598 max-l2mtu=2028
+        mac-address=64:D1:54:87:2D:20 ifname="eth2" ifindex=10 id=3 link-downs=0
