@@ -1,6 +1,6 @@
 # Project Overview
 
-This project is a script that processes network device(Mikrotik RouterOS v6) configuration data from a text file and generates an XML file containing the parsed interface settings. The project includes several Python modules and utility functions to extract relevant information from the configuration data, model it using a SettingModel, and then write the results to an XML file.
+This project is a script that processes network device(Mikrotik RouterOS) configuration data from a text file and generates an XML file containing the parsed interface settings. The project includes several Python modules and utility functions to extract relevant information from the configuration data, model it using a SettingModel, and then write the results to an XML file.
 
 <pre>
 .
@@ -51,4 +51,4 @@ Test Data: There are test files that simulate device configurations and edge cas
 To run the script and generate the XML file, execute the following command:
 ```python main.py <path_to_config_file>```
 
-⚠️ File MUST look like a configuration of mikrotik interfaces (RouterOS v6)
+⚠️ File MUST look like a configuration of mikrotik interfaces (RouterOS)
