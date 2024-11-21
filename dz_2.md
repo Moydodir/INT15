@@ -86,10 +86,44 @@ Flags: X - disabled, I - invalid
  7 XI api-ssl  8729                                                none       
 ```
 
-## 2. IP Firewall
+## Firewall
 
-   ![image](https://github.com/user-attachments/assets/7a39396c-0bc6-4c93-982a-f8da685e21b3)
+> Понимание потока пакетов
+Такие задачи, такие как приоритизация и фильтрация трафика, политики маршрутизации, когда необходимо использовать более одного средства RouterOS, требуют знаний: как эти средства работают вместе? Что происходит, когда и почему?
 
+> Схема потока пакетов RouterOS и примеры потоков попытаются ответить на эти вопросы.
+
+> Было бы очень сложно представить, что происходит с пакетом, на одной диаграмме, поэтому схема потока передачи пакетов разделена на три части:
+
+> общая схема;
+подробная схема подключения, маршрутизации и MPLS;
+диаграмма, показывающая, какие средства и в каком порядке включены в предварительную маршрутизацию, ввод, пересылку, вывод и последующую маршрутизацию.
+
+Общая схема выглядит следующим образом:
+![image](https://github.com/user-attachments/assets/7a39396c-0bc6-4c93-982a-f8da685e21b3)
+
+Полное описание Packetflow Diagram можно найти по ссылке:
+https://help.mikrotik.com/docs/spaces/ROS/pages/328227/Packet+Flow+in+RouterOS
+
+Для настройки Firewall в Mikrotik служит страница IP Firewall
+
+IP Firewall включает в себя множество вкладок:
+### 1. Filter Rules
+предназначена для управления правилами фильтрации трафика. С ее помощью можно настроить контроль за входящим, исходящим и транзитным трафиком
+```
+ ip firewall/filter/print
+```
+```
+Flags: X - disabled, I - invalid; D - dynamic 
+ 0  D ;;; special dummy rule to show fasttrack counters
+      chain=forward action=passthrough 
+
+ 1    chain=output action=drop protocol=icmp src-address=10.0.0.1 
+      out-interface=ether3 log=no log-prefix="" 
+
+ 2    chain=input action=fasttrack-connection hw-offload=yes protocol=udp 
+      src-address=172.16.0.32 packet-mark=TV dscp=56 log=no log-prefix="" 
+```
 
 ## VRF
 > RouterOS позволяет создавать несколько экземпляров виртуальной маршрутизации и пересылки на одном маршрутизаторе. Это полезно для VPN MPLS на основе BGP. В отличие от BGP VPLS, которая является технологией уровня 2 OSI, VPN BGP VRF работают на уровне 3 и как таковые обмениваются IP-префиксами между маршрутизаторами. VRF решают проблему перекрытия IP-префиксов и обеспечивают необходимую конфиденциальность (посредством раздельной маршрутизации для разных VPN).
