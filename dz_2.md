@@ -11,8 +11,10 @@ RouterOS — это автономная операционная система
 
   Основные инструменты для настройки устройств: мощный интерфейс командной строки (CLI), графический интерфейс (Winbox), а также возможность удаленного управления через веб-интерфейс и API. 
   
+<u>
   ***(важно ответить, что, хотя winbox используется чаще всего, он позволяет выполнять 99% команд, в отличие от консоли. Например, при настройке Wi-Fi, такие параметры как antenna-gain увидеть не получится. Также, имеются различные неисправности, например, беспроводной интерфейс 5ГГц имеет баг во вкладке Current Tx Power, из-за чего скорости не отображаются)***
-  
+</u>
+
   Поддерживает широкий спектр функций: маршрутизацию, VPN, QoS, файрволы, управление трафиком и другие.
 
 ### Производитель
@@ -106,6 +108,65 @@ Flags: D - dynamic; X - disabled, I - invalid
       lease-script="" 
 ```
 
+## IP DNS
+> Вкладка IP DNS используется для настройки серверов DNS, которые маршрутизатор будет использовать для разрешения доменных имён.
+```
+ ip dns print
+```
+```                      
+                      servers: 8.8.8.8,8.8.4.4
+              dynamic-servers: 
+               use-doh-server: 
+              verify-doh-cert: no
+   doh-max-server-connections: 5
+   doh-max-concurrent-queries: 50
+                  doh-timeout: 5s
+        allow-remote-requests: no
+          max-udp-packet-size: 4096
+         query-server-timeout: 2s
+          query-total-timeout: 10s
+       max-concurrent-queries: 100
+  max-concurrent-tcp-sessions: 20
+                   cache-size: 2048KiB
+                cache-max-ttl: 1w
+      address-list-extra-time: 0s
+                   cache-used: 29KiB
+```
+## IP Routes
+> Вкладка IP Routes используется для настройки маршрутизации, чтобы управлять тем, как маршрутизатор отправляет пакеты данных в другие сети. Имеется возможность добавления статических маршрутов, указания шлюзов и приоритетов для различных маршрутов.
+```
+ip route print detail 
+```
+```
+Flags: D - dynamic; X - disabled, I - inactive, A - active; 
+c - connect, s - static, r - rip, b - bgp, o - ospf, d - dhcp, v - vpn, m - modem, y - bgp-mpls-vpn; 
+H - hw-offloaded; + - ecmp 
+ 0  IsH  dst-address=10.0.0.0/24 routing-table=main pref-src="" gateway=192.168.1.1 immediate-gw="" distance=1 
+         scope=30 target-scope=10 suppress-hw-offload=no 
+
+   DAc   dst-address=255.255.255.0/32 routing-table=vrf2 gateway=bridge1@vrf2 immediate-gw=bridge1 distance=0 
+         scope=10 suppress-hw-offload=no local-address=192.168.88.1%bridge1@vrf2 
+```
+## VLAN
+> В Mikrotik настройка VLAN происходит в различных вкладках, исходя из решаемых задач.
+> Например, для настройки L2 VLAN (без создания VLAN интерфейсов) необходимо зайти во вкладку interface bridge vlan
+```
+interface/bridge/vlan/print detail 
+```
+```
+Flags: X - disabled, D - dynamic 
+ 0   bridge=Test vlan-ids=20,30 tagged=ether3 untagged="" current-tagged="" current-untagged="" 
+```
+> Для настройки L3 VLAN (с созданием интерфейсов) а также создания маршрутизации между VLAN (Например, Router-on-a-Stick) служит вкладка interface vlan
+```
+interface/vlan/print detail 
+```
+```
+Flags: X - disabled, R - running 
+ 0   name="VLAN2" mtu=1500 l2mtu=1594 mac-address=64:D1:54:87:2D:20 arp=enabled arp-timeout=auto 
+     loop-protect=default loop-protect-status=off loop-protect-send-interval=5s loop-protect-disable-time=5m 
+     vlan-id=2 interface=ether3 use-service-tag=no 
+```
 
 ## ARP
 > Несмотря на то, что IP-пакеты адресуются с использованием IP-адресов, для фактической передачи данных с одного хоста на другой необходимо использовать аппаратные адреса. Протокол разрешения адресов используется для сопоставления IP-адресов OSI уровня 3 с MAC-адресами OSI уровня 2. Маршрутизатор содержит таблицу используемых в настоящее время записей ARP. Обычно таблица создается динамически, но для повышения безопасности сети ее можно частично или полностью создать статически, добавив статические записи.
@@ -126,6 +187,8 @@ C - complete
       published=no
 
 ```
+
+# Настройки безопасности
 
 ## ACL
 > это список контроля доступом, с помощью которого для субъектов (чаще всего пользователей) устанавливаются допустимые операции с объектом. В Mikrotik ACL могут настраиваться в разных частях системы и служат для разных задач.
