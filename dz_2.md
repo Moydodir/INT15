@@ -39,6 +39,74 @@ hAP ac2 (международный) поддерживает диапазон �
 
 https://mikrotik.com/product/hap_ac2?ysclid=m3pzxz5hnd850531769
 
+# Основные настройки устройства
+
+## Interfaces
+> Содержит основную информацию об интерфейсах. Интерфейсы могут быть Ethernet, Wireless, PPPoE, VPN, VLAN, Bridge.
+```
+interface/print detail 
+```
+```
+Flags: D - dynamic; X - disabled, R - running; S - slave; P - passthrough 
+ 0      name="ether1" default-name="ether1" type="ether" mtu=1500 
+        actual-mtu=1500 l2mtu=1598 max-l2mtu=2028 
+        mac-address=64:D1:54:87:2D:1E ifname="eth0" ifindex=11 id=1 
+        last-link-down-time=1970-01-05 03:29:35 
+        last-link-up-time=1970-01-05 03:28:34 link-downs=1 
+
+ 1      name="ether2" default-name="ether2" type="ether" mtu=1500 
+        actual-mtu=1500 l2mtu=1598 max-l2mtu=2028 
+        mac-address=64:D1:54:87:2D:1F ifname="eth1" ifindex=12 id=2 
+        link-downs=0 
+
+ 2   S  name="ether3" default-name="ether3" type="ether" mtu=1500 
+        actual-mtu=1500 l2mtu=1598 max-l2mtu=2028 vrf=vrf2 
+        mac-address=64:D1:54:87:2D:20 ifname="eth2" ifindex=13 id=3 
+        link-downs=0 
+
+ 3  R   name="ether4" default-name="ether4" type="ether" mtu=1500 
+        actual-mtu=1500 l2mtu=1598 max-l2mtu=2028 vrf=vrf1 
+        mac-address=64:D1:54:87:2D:21 ifname="eth3" ifindex=14 id=4 
+        last-link-down-time=1970-01-06 02:03:31 
+        last-link-up-time=1970-01-06 02:12:30 link-downs=5 
+```
+
+## IP address
+> Вкладка IP Address используется для управления IP-адресами, которые назначаются интерфейсам маршрутизатора.
+```
+ip address/print detail 
+```
+```
+Flags: X - disabled, I - invalid, D - dynamic 
+ 0   address=192.168.88.1/32 network=255.255.255.0 interface=bridge1 actual-interface=bridge1 
+```
+
+## IP DHCP Client/Server
+> Вкладка IP DHCP Client используется для настройки клиента DHCP, который автоматически получает IP-адрес от DHCP-сервера
+> Вкладка IP DHCP Server используется для настройки сервера DHCP, который динамически выдает IP-адреса клиентам в сети.
+
+```
+ip dhcp-client print detail 
+```
+```
+Flags: X - disabled, I - invalid, D - dynamic 
+ 0 I interface=ether1 add-default-route=yes default-route-distance=1 use-peer-dns=yes use-peer-ntp=yes 
+     dhcp-options=hostname,clientid 
+
+ 1 I interface=ether3 add-default-route=yes default-route-distance=1 use-peer-dns=yes use-peer-ntp=yes 
+     dhcp-options=hostname,clientid
+```
+
+```
+ip dhcp-server print detail 
+```
+```
+Flags: D - dynamic; X - disabled, I - invalid 
+ 0  I name="dhcp1" interface=Test lease-time=3d address-pool=dhcp_pool authoritative=yes use-radius=no 
+      lease-script="" 
+```
+
+
 ## ARP
 > Несмотря на то, что IP-пакеты адресуются с использованием IP-адресов, для фактической передачи данных с одного хоста на другой необходимо использовать аппаратные адреса. Протокол разрешения адресов используется для сопоставления IP-адресов OSI уровня 3 с MAC-адресами OSI уровня 2. Маршрутизатор содержит таблицу используемых в настоящее время записей ARP. Обычно таблица создается динамически, но для повышения безопасности сети ее можно частично или полностью создать статически, добавив статические записи.
 Такие записи можно получить следующей коммандой
@@ -62,7 +130,7 @@ C - complete
 ## ACL
 > это список контроля доступом, с помощью которого для субъектов (чаще всего пользователей) устанавливаются допустимые операции с объектом. В Mikrotik ACL могут настраиваться в разных частях системы и служат для разных задач.
 
-## 1. IP Services
+### 1. IP Services
 
    Контролирует доступ к службам маршрутизатора (Winbox, SSH, Telnet, API и др.).
 
@@ -84,6 +152,18 @@ Flags: X - disabled, I - invalid
  6   winbox   8291 192.168.0.192/27                              
                    10.0.240.0/28                                 
  7 XI api-ssl  8729                                                none       
+```
+
+### 2. Bridge Filters
+> Позволяет контролировать трафик, проходящий между интерфейсами, связанными через мост (Bridge).
+```
+interface bridge filter print
+```
+```
+Flags: X - disabled, I - invalid, D - dynamic 
+ 0   chain=forward action=drop in-interface=ether3 log=no log-prefix="" 
+
+ 1   chain=forward action=drop mac-protocol=arp
 ```
 
 ## Firewall
@@ -108,7 +188,7 @@ https://help.mikrotik.com/docs/spaces/ROS/pages/328227/Packet+Flow+in+RouterOS
 
 IP Firewall включает в себя множество вкладок:
 ### 1. Filter Rules
-предназначена для управления правилами фильтрации трафика. С ее помощью можно настроить контроль за входящим, исходящим и транзитным трафиком
+> предназначена для управления правилами фильтрации трафика. С ее помощью можно настроить контроль за входящим, исходящим и транзитным трафиком
 ```
  ip firewall/filter/print cetail
 ```
@@ -124,7 +204,7 @@ Flags: X - disabled, I - invalid; D - dynamic
       src-address=172.16.0.32 packet-mark=TV dscp=56 log=no log-prefix="" 
 ```
 ### 2. NAT
-используется для настройки преобразования сетевых адресов. NAT позволяет изменять IP-адреса и порты в заголовках пакетов при их прохождении через маршрутизатор.
+> используется для настройки преобразования сетевых адресов. NAT позволяет изменять IP-адреса и порты в заголовках пакетов при их прохождении через маршрутизатор.
 ``` 
  ip firewall/nat/print detail                                  
 ```
@@ -134,6 +214,83 @@ Flags: X - disabled, I - invalid; D - dynamic
       protocol=tcp dst-address=1.2.3.4 dst-port=80 
 
  1    chain=srcnat action=src-nat to-addresses=1.2.3.4 src-address=192.168.1.50 
+```
+### 3. Mangle
+> Предназначена для маркировки трафика. Она позволяет устанавливать метки для пакетов, соединений или маршрутов, чтобы они могли быть обработаны особым образом в других подсистемах маршрутизатора, таких как QoS (очереди), маршрутизация или NAT.
+```
+ ip firewall mangle print detail                              
+```
+```
+Flags: X - disabled, I - invalid; D - dynamic               
+ 0  D ;;; special dummy rule to show fasttrack counters
+      chain=prerouting action=passthrough 
+
+ 1  D ;;; special dummy rule to show fasttrack counters
+      chain=forward action=passthrough 
+
+ 2  D ;;; special dummy rule to show fasttrack counters
+      chain=postrouting action=passthrough 
+
+ 3    chain=prerouting action=mark-packet new-packet-mark=voip passthrough=no 
+      protocol=udp dst-port=5060 
+```
+### Raw
+> Предназначена для первичной обработки пакетов на уровне сетевого стека. Она позволяет выполнять базовую фильтрацию трафика до других обработок, таких как NAT, Mangle или Filter. Это обеспечивает более высокую производительность и гибкость, так как фильтрация в Raw снижает нагрузку на процессор маршрутизатора.
+
+```
+ip firewall raw print detail
+```
+```
+Flags: X - disabled, I - invalid; D - dynamic 
+ 0  D ;;; special dummy rule to show fasttrack counters
+      chain=prerouting action=passthrough 
+
+ 1    chain=prerouting action=drop src-address-list=port_scanners
+```
+### Service Ports
+> используется для управления предопределёнными сервисами, которые маршрутизатор обрабатывает на уровне ядра. Эти сервисы включают специфичные протоколы, такие как FTP, SIP, GRE, PPTP, и многие другие, которые требуют особой обработки для корректной работы.
+```
+ /ip firewall service-port print detail
+```
+```
+Flags: X - disabled, I - invalid 
+ 0   name="ftp" ports=21 
+
+ 1   name="tftp" ports=69 
+
+ 2 X name="irc" ports=6667 
+
+ 3   name="h323" 
+
+ 4   name="sip" ports=5060,5061 sip-direct-media=yes sip-timeout=1h 
+
+ 5   name="pptp" 
+
+ 6 X name="rtsp" ports=554 
+
+ 7   name="udplite" 
+
+ 8   name="dccp" 
+
+ 9   name="sctp" 
+```
+### Address Lists
+> Address Lists — это списки IP-адресов, которые используются в правилах Firewall. Они помогают упростить и автоматизировать управление доступом к сети.
+```
+ip firewall address-list print detail
+```
+```
+Columns: LIST, ADDRESS, CREATION-TIME
+# LIST           ADDRESS        CREATION-TIME      
+0 port_scanners  192.168.1.100  1970-01-06 02:22:35
+```
+### Layer 7 Protocols
+> позволяет идентифицировать трафик на основе анализа содержимого пакетов. Он используется для управления приложениями или сервисами, которые работают поверх TCP/UDP.
+```
+ip firewall layer7-protocol print detail 
+```
+```
+ 0 name="youtube" regexp="^.*(youtube\.com|ytimg\.com).*$" 
 ```
 
 ## VRF
@@ -156,3 +313,4 @@ Flags: X - disabled; * - builtin
 
 ## Полезные ссылки
 https://help.mikrotik.com/docs/
+https://wiki.mikrotik.com/Manual:IP/Firewall
