@@ -110,7 +110,7 @@ IP Firewall включает в себя множество вкладок:
 ### 1. Filter Rules
 предназначена для управления правилами фильтрации трафика. С ее помощью можно настроить контроль за входящим, исходящим и транзитным трафиком
 ```
- ip firewall/filter/print
+ ip firewall/filter/print cetail
 ```
 ```
 Flags: X - disabled, I - invalid; D - dynamic 
@@ -122,6 +122,18 @@ Flags: X - disabled, I - invalid; D - dynamic
 
  2    chain=input action=fasttrack-connection hw-offload=yes protocol=udp 
       src-address=172.16.0.32 packet-mark=TV dscp=56 log=no log-prefix="" 
+```
+### 2. NAT
+используется для настройки преобразования сетевых адресов. NAT позволяет изменять IP-адреса и порты в заголовках пакетов при их прохождении через маршрутизатор.
+``` 
+ ip firewall/nat/print detail                                  
+```
+```
+Flags: X - disabled, I - invalid; D - dynamic                         
+ 0    chain=dstnat action=dst-nat to-addresses=192.168.1.100 to-ports=80 
+      protocol=tcp dst-address=1.2.3.4 dst-port=80 
+
+ 1    chain=srcnat action=src-nat to-addresses=1.2.3.4 src-address=192.168.1.50 
 ```
 
 ## VRF
