@@ -178,6 +178,11 @@ Flags: X - disabled, R - running
      vlan-id=2 interface=ether3 use-service-tag=no 
 ```
 
+# Маршрутизация
+> Здесь приведены примеры настроек OSPF и BGP. Более полную информацию о возможных настройках протоколов маршрутизации можно найти по ссылке:
+
+https://help.mikrotik.com/docs/spaces/ROS/pages/328222/Routing
+
 ## Routing BGP
 > используется для управления и конфигурации различных аспектов BGP-маршрутизации:
 > Инстансы (Instances), соседи (Peers), маршруты (Routes), политики (Policies), атрибуты маршрутов (Route Attributes), мониторинг, диагностика и безопасность
@@ -191,6 +196,77 @@ Flags: * - default, X - disabled
       redistribute-static=no redistribute-rip=no redistribute-ospf=no 
       redistribute-other-bgp=no out-filter="" client-to-client-reflection=yes 
       ignore-as-path-len=no routing-table="
+```
+
+## Routing OSPF
+>используется для настройки и управления протоколом OSPF (Open Shortest Path First), который является одним из наиболее распространенных протоколов маршрутизации в IP-сетях. OSPF используется для динамической маршрутизации внутри автономных систем (AS).
+
+Просмотр OSPF-инстансов:
+```
+ routing ospf instance print detail 
+```
+```
+Flags: X - disabled, * - default 
+ 0  * name="default" router-id=172.16.0.24 distribute-default=never 
+      redistribute-connected=no redistribute-static=no redistribute-rip=no 
+      redistribute-bgp=no redistribute-other-ospf=no metric-default=10 
+      metric-connected=20 metric-static=20 metric-rip=20 metric-bgp=auto 
+      metric-other-ospf=auto in-filter=ospf-in out-filter=ospf-out 
+```
+
+Просмотр OSPF-интерфейсов:
+```
+routing ospf interface print detail 
+```
+```
+Flags: X - disabled, I - inactive, D - dynamic, P - passive 
+ 0    interface=B3-RING cost=10 priority=125 authentication=none 
+      authentication-key="" authentication-key-id=1 network-type=default 
+      instance-id=0 retransmit-interval=5s transmit-delay=1s 
+      hello-interval=10s dead-interval=40s use-bfd=no 
+
+ 1    interface=gre-tunnel1 cost=10 priority=1 authentication=none 
+      authentication-key="" authentication-key-id=0 
+      network-type=point-to-point instance-id=0 retransmit-interval=5s 
+      transmit-delay=1s hello-interval=10s dead-interval=40s use-bfd=no 
+
+ 2    interface=gre-tunnel2 cost=10 priority=0 authentication=none 
+      authentication-key="" authentication-key-id=1 
+      network-type=point-to-point instance-id=0 retransmit-interval=5s 
+      transmit-delay=1s hello-interval=10s dead-interval=40s use-bfd=no 
+```
+
+Просмотр OSPF-соседей:
+```
+ routing ospf neighbor print detail 
+```
+```
+0 instance=default router-id=172.16.0.25 address=172.16.0.25 
+   interface=gre-tunnel1 priority=1 dr-address=0.0.0.0 
+   backup-dr-address=0.0.0.0 state="Full" state-changes=82 ls-retransmits=0 
+   ls-requests=0 db-summaries=0 adjacency=10m20s 
+
+ 1 instance=default router-id=172.16.0.26 address=10.0.0.1 
+   interface=gre-tunnel2 priority=0 dr-address=0.0.0.0 
+   backup-dr-address=0.0.0.0 state="Full" state-changes=4 ls-retransmits=0 
+   ls-requests=0 db-summaries=0 adjacency=5w3d22h25m43s 
+```
+Просмотр OSPF-маршрутов:
+```
+ routing ospf route print detail 
+```
+```
+0 instance=default dst-address=0.0.0.0/0 state=ext-2 gateway=172.16.0.208 
+   interface=gre-tunnel1 cost=10 area=external 
+
+ 1 instance=default dst-address=10.0.32.0/29 state=inter-area 
+   gateway=172.16.0.208 interface=gre-tunnel1 cost=21 area=backbone 
+
+ 2 instance=default dst-address=10.0.32.16/28 state=inter-area 
+   gateway=172.16.0.208 interface=gre-tunnel1 cost=21 area=backbone 
+
+ 3 instance=default dst-address=10.0.32.112/28 state=inter-area 
+   gateway=172.16.0.208 interface=gre-tunnel1 cost=21 area=backbone
 ```
 
 ## ARP
