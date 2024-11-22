@@ -288,6 +288,8 @@ C - complete
       published=no
 
 ```
+# Wi-Fi
+
 
 # Настройки безопасности
 
