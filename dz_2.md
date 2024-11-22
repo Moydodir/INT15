@@ -72,6 +72,25 @@ Flags: D - dynamic; X - disabled, R - running; S - slave; P - passthrough
         last-link-down-time=1970-01-06 02:03:31 
         last-link-up-time=1970-01-06 02:12:30 link-downs=5 
 ```
+## ARP
+> Несмотря на то, что IP-пакеты адресуются с использованием IP-адресов, для фактической передачи данных с одного хоста на другой необходимо использовать аппаратные адреса. Протокол разрешения адресов используется для сопоставления IP-адресов OSI уровня 3 с MAC-адресами OSI уровня 2. Маршрутизатор содержит таблицу используемых в настоящее время записей ARP. Обычно таблица создается динамически, но для повышения безопасности сети ее можно частично или полностью создать статически, добавив статические записи.
+Такие записи можно получить следующей коммандой
+```
+/ip arp print detail
+```
+```
+Flags: X - disabled, I - invalid, H - DHCP, D - dynamic, P - published, 
+C - complete 
+ 0 DC address=172.16.0.254 mac-address=AA:BB:CC:DD:EE:FF interface=B8-MGMT-WIFI 
+      published=no 
+
+ 1 DC address=192.168.204.200 mac-address=11:22:33:44:55:66 
+      interface=PUB-COMM published=no 
+
+ 2 DC address=172.16.8.252 mac-address=4C:5E:0C:02:93:71 interface=B8-MGMT-WIFI 
+      published=no
+
+```
 
 ## IP address
 > Вкладка IP Address используется для управления IP-адресами, которые назначаются интерфейсам маршрутизатора.
@@ -132,31 +151,6 @@ Flags: D - dynamic; X - disabled, I - invalid
       address-list-extra-time: 0s
                    cache-used: 29KiB
 ```
-## IP Routes
-> Вкладка IP Routes используется для настройки маршрутизации, чтобы управлять тем, как маршрутизатор отправляет пакеты данных в другие сети. Имеется возможность добавления статических маршрутов, указания шлюзов и приоритетов для различных маршрутов.
-```
-ip route print detail 
-```
-```
-Flags: X - disabled, A - active, D - dynamic, 
-C - connect, S - static, r - rip, b - bgp, o - ospf, m - mme, 
-B - blackhole, U - unreachable, P - prohibit
- 0 A S  dst-address=0.0.0.0/0 gateway=172.16.0.254 
-        gateway-status=172.16.0.254 on VRF-MGMT-NET reachable via  vlan3 
-        distance=1 scope=30 target-scope=10 routing-mark=VRF-MGMT-NET 
-
- 1 ADC  dst-address=172.30.8.0/24 pref-src=172.16.0.130 gateway=vlan3 
-        gateway-status=vlan3 reachable distance=0 scope=10 
-        routing-mark=VRF-MGMT-NET 
-
- 2 A S  dst-address=0.0.0.0/0 gateway=10.0.0.97 
-        gateway-status=10.0.0.97 reachable via  ISP distance=1 
-        scope=30 target-scope=10 
-
- 3 ADC  dst-address=192.168.1.0/29 pref-src=192.168.1.8 gateway=vlan131 
-        gateway-status=vlan131 reachable distance=0 scope=10 
-```
-
 ## VLAN
 > В Mikrotik настройка VLAN происходит в различных вкладках, исходя из решаемых задач.
 > Например, для настройки L2 VLAN (без создания VLAN интерфейсов) необходимо зайти во вкладку interface bridge vlan
@@ -182,6 +176,31 @@ Flags: X - disabled, R - running
 > Здесь приведены примеры настроек OSPF и BGP. Более полную информацию о возможных настройках протоколов маршрутизации можно найти по ссылке:
 
 https://help.mikrotik.com/docs/spaces/ROS/pages/328222/Routing
+
+## IP Routes
+> Вкладка IP Routes используется для настройки маршрутизации, чтобы управлять тем, как маршрутизатор отправляет пакеты данных в другие сети. Имеется возможность добавления статических маршрутов, указания шлюзов и приоритетов для различных маршрутов.
+```
+ip route print detail 
+```
+```
+Flags: X - disabled, A - active, D - dynamic, 
+C - connect, S - static, r - rip, b - bgp, o - ospf, m - mme, 
+B - blackhole, U - unreachable, P - prohibit
+ 0 A S  dst-address=0.0.0.0/0 gateway=172.16.0.254 
+        gateway-status=172.16.0.254 on VRF-MGMT-NET reachable via  vlan3 
+        distance=1 scope=30 target-scope=10 routing-mark=VRF-MGMT-NET 
+
+ 1 ADC  dst-address=172.30.8.0/24 pref-src=172.16.0.130 gateway=vlan3 
+        gateway-status=vlan3 reachable distance=0 scope=10 
+        routing-mark=VRF-MGMT-NET 
+
+ 2 A S  dst-address=0.0.0.0/0 gateway=10.0.0.97 
+        gateway-status=10.0.0.97 reachable via  ISP distance=1 
+        scope=30 target-scope=10 
+
+ 3 ADC  dst-address=192.168.1.0/29 pref-src=192.168.1.8 gateway=vlan131 
+        gateway-status=vlan131 reachable distance=0 scope=10 
+```
 
 ## Routing BGP
 > используется для управления и конфигурации различных аспектов BGP-маршрутизации:
@@ -235,7 +254,6 @@ Flags: X - disabled, I - inactive, D - dynamic, P - passive
       network-type=point-to-point instance-id=0 retransmit-interval=5s 
       transmit-delay=1s hello-interval=10s dead-interval=40s use-bfd=no 
 ```
-
 Просмотр OSPF-соседей:
 ```
  routing ospf neighbor print detail 
@@ -268,29 +286,144 @@ Flags: X - disabled, I - inactive, D - dynamic, P - passive
  3 instance=default dst-address=10.0.32.112/28 state=inter-area 
    gateway=172.16.0.208 interface=gre-tunnel1 cost=21 area=backbone
 ```
+## VRF
+> RouterOS позволяет создавать несколько экземпляров виртуальной маршрутизации и пересылки на одном маршрутизаторе. Это полезно для VPN MPLS на основе BGP. В отличие от BGP VPLS, которая является технологией уровня 2 OSI, VPN BGP VRF работают на уровне 3 и как таковые обмениваются IP-префиксами между маршрутизаторами. VRF решают проблему перекрытия IP-префиксов и обеспечивают необходимую конфиденциальность (посредством раздельной маршрутизации для разных VPN).
 
-## ARP
-> Несмотря на то, что IP-пакеты адресуются с использованием IP-адресов, для фактической передачи данных с одного хоста на другой необходимо использовать аппаратные адреса. Протокол разрешения адресов используется для сопоставления IP-адресов OSI уровня 3 с MAC-адресами OSI уровня 2. Маршрутизатор содержит таблицу используемых в настоящее время записей ARP. Обычно таблица создается динамически, но для повышения безопасности сети ее можно частично или полностью создать статически, добавив статические записи.
-Такие записи можно получить следующей коммандой
+Имеющиеся VRF можно получить командой:
 ```
-/ip arp print detail
+/ip vrf print detail
 ```
 ```
-Flags: X - disabled, I - invalid, H - DHCP, D - dynamic, P - published, 
-C - complete 
- 0 DC address=172.16.0.254 mac-address=AA:BB:CC:DD:EE:FF interface=B8-MGMT-WIFI 
-      published=no 
+Flags: X - disabled; * - builtin 
+ 0    ;;; Another custom VRF
+      name="vrf2" interfaces=bridge1 
 
- 1 DC address=192.168.204.200 mac-address=11:22:33:44:55:66 
-      interface=PUB-COMM published=no 
+ 1    ;;; Custom VRF
+      name="vrf1" interfaces=ether3,ether4 
 
- 2 DC address=172.16.8.252 mac-address=4C:5E:0C:02:93:71 interface=B8-MGMT-WIFI 
-      published=no
-
+ 2  * name="main" interfaces=all
 ```
+
+
 # Wi-Fi
+> Настройка Wi-Fi в MikroTik RouterOS может быть выполнена как вручную, так и с использованием CAPsMAN (Controlled Access Point System Manager). В этом разделе описывается вывод информации о беспроводных протоколах 802.11.
 
+```
+interface wireless print detail advanced 
+```
+данная команда может содержать весьма объёмный вывод ввиду большого количества возможных настроек бнспроводных интерфейсов: режима, стандарта(например, есть возможность не использовать старые стандарты типа 802.11b, 802.11g ввиду безопасности и исключения случаев подключения к сети за пределами контролируемой зоны), частоты, профилей безопасности, страны, WPS, различных флагов(типа Hide SSID), скоростей(VHT MCS, HT, HT MCS), VLAN, Tx Limit, возможность пропускать каналы DFS и др.
+```
+Flags: X - disabled, R - running 
+ 0    ;;; WIFI | 2.4GHz
+      name="wlan1" mtu=1500 l2mtu=1600 mac-address=74:4D:28:63:21:2A 
+      arp=enabled disable-running-check=no interface-type=IPQ4019 
+      radio-name="744D2863212A" mode=ap-bridge ssid="MY-SSID" area="" 
+      frequency-mode=manual-txpower country=russia3 installation=indoor 
+      antenna-gain=6 frequency=2427 band=2ghz-onlyn channel-width=20mhz 
+      secondary-frequency="" scan-list=default wireless-protocol=802.11 
+      rate-set=configured supported-rates-b="" 
+      supported-rates-a/g=9Mbps,12Mbps,18Mbps,24Mbps,36Mbps,48Mbps,54Mbps 
+      basic-rates-b="" basic-rates-a/g=9Mbps max-station-count=32 
+      distance=indoors tx-power=11 tx-power-mode=all-rates-fixed 
+      vlan-mode=use-tag vlan-id=256 wds-mode=disabled wds-default-bridge=none 
+      wds-default-cost=100 wds-cost-range=50-150 wds-ignore-ssid=no 
+      update-stats-interval=disabled bridge-mode=enabled 
+      default-authentication=yes default-forwarding=yes default-ap-tx-limit=0 
+      default-client-tx-limit=0 wmm-support=enabled hide-ssid=no 
+      security-profile=WIFI wps-mode=disabled 
+      station-roaming=disabled disconnect-timeout=3s on-fail-retry-time=100ms 
+      preamble-mode=both compression=no allow-sharedkey=no 
+      station-bridge-clone-mac=00:00:00:00:00:00 ampdu-priorities=0 
+      guard-interval=any 
+      ht-supported-mcs=mcs-0,mcs-1,mcs-2,mcs-3,mcs-4,mcs-5,mcs-6,mcs-7,mcs-8,
+                 mcs-9,mcs-10,mcs-11,mcs-12,mcs-13,mcs-14,mcs-15,mcs-16,mcs-17,
+                 mcs-18,mcs-19,mcs-20,mcs-21,mcs-22,mcs-23 
+      ht-basic-mcs=mcs-0,mcs-1,mcs-2,mcs-3,mcs-4,mcs-5,mcs-6,mcs-7 
+      tx-chains=0,1 rx-chains=0,1 amsdu-limit=8192 amsdu-threshold=8192 
+      tdma-period-size=2 nv2-queue-count=2 nv2-qos=default nv2-cell-radius=30 
+      nv2-security=disabled nv2-preshared-key="" nv2-mode=dynamic-downlink 
+      nv2-downlink-ratio=50 nv2-sync-secret="" hw-retries=7 frame-lifetime=0 
+      adaptive-noise-immunity=none hw-fragmentation-threshold=disabled 
+      hw-protection-mode=none hw-protection-threshold=0 frequency-offset=0 
+      rate-selection=advanced multicast-helper=full 
+      multicast-buffering=enabled keepalive-frames=enabled 
+      skip-dfs-channels=disabled 
 
+ 1    ;;; WIFI | 5 GHz
+      name="wlan2" mtu=1500 l2mtu=1600 mac-address=74:4D:28:63:21:2B 
+      arp=enabled disable-running-check=no interface-type=IPQ4019 
+      radio-name="744D2863212B" mode=ap-bridge ssid="MY-SSID-5" area="" 
+      frequency-mode=manual-txpower country=russia3 installation=indoor 
+      antenna-gain=6 frequency=5240 band=5ghz-n/ac channel-width=20mhz 
+      secondary-frequency="" scan-list=default wireless-protocol=802.11 
+      rate-set=configured 
+      supported-rates-a/g=9Mbps,12Mbps,18Mbps,24Mbps,36Mbps,48Mbps,54Mbps 
+      basic-rates-a/g=9Mbps max-station-count=32 distance=indoors tx-power=14 
+      tx-power-mode=all-rates-fixed vlan-mode=use-tag vlan-id=256 
+      wds-mode=disabled wds-default-bridge=none wds-default-cost=100 
+      wds-cost-range=50-150 wds-ignore-ssid=no update-stats-interval=disabled 
+      bridge-mode=enabled default-authentication=yes default-forwarding=yes 
+      default-ap-tx-limit=0 default-client-tx-limit=0 wmm-support=enabled 
+      hide-ssid=no security-profile=WIFI wps-mode=disabled 
+      station-roaming=disabled disconnect-timeout=3s on-fail-retry-time=100ms 
+      preamble-mode=both compression=no allow-sharedkey=no 
+      station-bridge-clone-mac=00:00:00:00:00:00 ampdu-priorities=0 
+      guard-interval=any 
+      ht-supported-mcs=mcs-0,mcs-1,mcs-2,mcs-3,mcs-4,mcs-5,mcs-6,mcs-7,mcs-8,
+                 mcs-9,mcs-10,mcs-11,mcs-12,mcs-13,mcs-14,mcs-15,mcs-16,mcs-17,
+                 mcs-18,mcs-19,mcs-20,mcs-21,mcs-22,mcs-23 
+      ht-basic-mcs=mcs-0,mcs-1,mcs-2,mcs-3,mcs-4,mcs-5,mcs-6,mcs-7 
+      vht-supported-mcs=mcs0-9 vht-basic-mcs=mcs0-7 tx-chains=0,1 
+      rx-chains=0,1 amsdu-limit=8192 amsdu-threshold=8192 tdma-period-size=2 
+      nv2-queue-count=2 nv2-qos=default nv2-cell-radius=30 
+      nv2-security=disabled nv2-preshared-key="" nv2-mode=dynamic-downlink 
+      nv2-downlink-ratio=50 nv2-sync-secret="" hw-retries=7 frame-lifetime=0 
+      adaptive-noise-immunity=none hw-fragmentation-threshold=disabled 
+      hw-protection-mode=none hw-protection-threshold=0 frequency-offset=0 
+      rate-selection=advanced multicast-helper=full 
+      multicast-buffering=enabled keepalive-frames=enabled 
+      skip-dfs-channels=disabled 
+```
+ACL Wi-Fi можно получить следующей командой:
+```
+interface wireless access-list print detail 
+```
+```
+Flags: X - disabled 
+ 0   mac-address=00:00:00:00:00:00 interface=any signal-range=-75..120 allow-signal-out-of-range=10s 
+     authentication=yes forwarding=no ap-tx-limit=0 client-tx-limit=0 private-algo=none private-key="" 
+     private-pre-shared-key="" management-protection-key="" vlan-mode=default vlan-id=1 
+
+ 1   mac-address=00:00:00:00:00:00 interface=any signal-range=-120..-75 allow-signal-out-of-range=10s 
+     authentication=no forwarding=no ap-tx-limit=0 client-tx-limit=0 private-algo=none private-key="" 
+     private-pre-shared-key="" management-protection-key="" vlan-mode=default vlan-id=1 
+```
+Для вывода настроек профилей безопасности введите следующую команду
+```
+interface wireless security-profiles print detail
+```
+```
+Flags: * - default 
+ 0 * name="default" mode=none authentication-types="" unicast-ciphers=aes-ccm group-ciphers=aes-ccm 
+     wpa-pre-shared-key="" wpa2-pre-shared-key="" supplicant-identity="MikroTik" eap-methods=passthrough 
+     tls-mode=no-certificates tls-certificate=none mschapv2-username="" mschapv2-password="" disable-pmkid=no 
+     static-algo-0=none static-key-0="" static-algo-1=none static-key-1="" static-algo-2=none static-key-2="" 
+     static-algo-3=none static-key-3="" static-transmit-key=key-0 static-sta-private-algo=none 
+     static-sta-private-key="" radius-mac-authentication=no radius-mac-accounting=no radius-eap-accounting=no 
+     interim-update=0s radius-mac-format=XX:XX:XX:XX:XX:XX radius-mac-mode=as-username 
+     radius-called-format=mac:ssid radius-mac-caching=disabled group-key-update=5m management-protection=disabled 
+     management-protection-key="" 
+
+ 1   name="WIFI" mode=dynamic-keys authentication-types=wpa2-psk unicast-ciphers=aes-ccm 
+     group-ciphers=aes-ccm wpa-pre-shared-key="" wpa2-pre-shared-key="123qwerty" supplicant-identity="" 
+     eap-methods="" tls-mode=no-certificates tls-certificate=none mschapv2-username="" mschapv2-password="" 
+     disable-pmkid=no static-algo-0=none static-key-0="" static-algo-1=none static-key-1="" static-algo-2=none 
+     static-key-2="" static-algo-3=none static-key-3="" static-transmit-key=key-0 static-sta-private-algo=none 
+     static-sta-private-key="" radius-mac-authentication=no radius-mac-accounting=no radius-eap-accounting=no 
+     interim-update=0s radius-mac-format=XX:XX:XX:XX:XX:XX radius-mac-mode=as-username 
+     radius-called-format=mac:ssid radius-mac-caching=disabled group-key-update=5m management-protection=disabled 
+     management-protection-key=""
+```
 # Настройки безопасности
 
 ## ACL
@@ -458,25 +591,6 @@ ip firewall layer7-protocol print detail
 ```
  0 name="youtube" regexp="^.*(youtube\.com|ytimg\.com).*$" 
 ```
-
-## VRF
-> RouterOS позволяет создавать несколько экземпляров виртуальной маршрутизации и пересылки на одном маршрутизаторе. Это полезно для VPN MPLS на основе BGP. В отличие от BGP VPLS, которая является технологией уровня 2 OSI, VPN BGP VRF работают на уровне 3 и как таковые обмениваются IP-префиксами между маршрутизаторами. VRF решают проблему перекрытия IP-префиксов и обеспечивают необходимую конфиденциальность (посредством раздельной маршрутизации для разных VPN).
-
-Имеющиеся VRF можно получить командой:
-```
-/ip vrf print detail
-```
-```
-Flags: X - disabled; * - builtin 
- 0    ;;; Another custom VRF
-      name="vrf2" interfaces=bridge1 
-
- 1    ;;; Custom VRF
-      name="vrf1" interfaces=ether3,ether4 
-
- 2  * name="main" interfaces=all
-```
-
 ## Полезные ссылки
 https://help.mikrotik.com/docs/
 https://wiki.mikrotik.com/Manual:IP/Firewall
