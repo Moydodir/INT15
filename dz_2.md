@@ -169,7 +169,32 @@ interface/vlan/print detail
 Flags: X - disabled, R - running 
  0   name="VLAN2" mtu=1500 l2mtu=1594 mac-address=64:D1:54:87:2D:20 arp=enabled arp-timeout=auto 
      loop-protect=default loop-protect-status=off loop-protect-send-interval=5s loop-protect-disable-time=5m 
-     vlan-id=2 interface=ether3 use-service-tag=no 
+     vlan-id=2 interface=ether3 use-service-tag=no
+```
+# QoS
+> Позволяет управлять приоритетами трафика и обеспечивать качество обслуживания для различных типов данных.
+> простые очереди (Simple Queues) предоставляют удобный способ управления пропускной способностью и приоритетами трафика без необходимости глубокого понимания сложных концепций QoS. Простые очереди позволяют легко ограничивать скорость для определенных типов трафика и устанавливать приоритеты.
+> "burst" используется в контексте управления очередями (QoS) для временного превышения установленных ограничений скорости. Это позволяет сети справляться с кратковременными всплесками трафика без значительного ухудшения качества обслуживания.
+
+```
+queue simple print detail 
+```
+```
+Flags: X - disabled, I - invalid, D - dynamic 
+ 0  D name="first-simple-queue" target=172.16.0.2/32 parent=none 
+      packet-marks="" priority=8/8 queue=default-small/default-small 
+      limit-at=10M/10M max-limit=10M/10M burst-limit=0/0 burst-threshold=0/0 
+      burst-time=0s/0s bucket-size=0.1/0.1 
+
+ 1  D name="second-simple-queue" target=10.0.0.1/32 parent=none 
+      packet-marks="" priority=8/8 queue=default-small/default-small 
+      limit-at=10M/10M max-limit=10M/10M burst-limit=0/0 burst-threshold=0/0 
+      burst-time=0s/0s bucket-size=0.1/0.1 
+
+ 2  D name="provider" target=WIFI-Guest parent=none packet-marks="" 
+      priority=8/8 queue=hotspot-default/hotspot-default limit-at=0/0 
+      max-limit=0/0 burst-limit=0/0 burst-threshold=0/0 burst-time=0s/0s 
+      bucket-size=0.1/0.1 
 ```
 
 # Маршрутизация
@@ -592,6 +617,56 @@ ip firewall layer7-protocol print detail
 ```
 ```
  0 name="youtube" regexp="^.*(youtube\.com|ytimg\.com).*$" 
+```
+
+# RADIUS
+> RADIUS, сокращение от Remote Authentication Dial-In User Service, представляет собой удаленный сервер, который обеспечивает средства аутентификации и учета для различных сетевых устройств. Аутентификация и учет RADIUS позволяют интернет-провайдеру или сетевому администратору управлять доступом и учетом пользователей PPP с одного сервера в большой сети. MikroTik RouterOS имеет RADIUS-клиент, который может аутентифицировать локальных пользователей маршрутизатора, соединения HotSpot, PPP, PPPoE, PPTP, L2TP, OVPN, SSTP, IPsec и ISDN. Атрибуты, полученные от RADIUS-сервера, переопределяют атрибуты, установленные в профиле по умолчанию, но если некоторые параметры не получены, они берутся из соответствующего профиля по умолчанию. К базе данных сервера RADIUS обращаются только в том случае, если в локальной базе данных маршрутизатора не найдена соответствующая запись о доступе пользователя. Если учет RADIUS включен, учетная информация также отправляется на сервер RADIUS по умолчанию для этой службы.
+>
+> ссылка на документацию: https://help.mikrotik.com/docs/spaces/ROS/pages/328097/RADIUS
+
+```
+ radius print detail 
+```
+```
+Flags: X - disabled 
+ 0   service=my-service called-id="" domain="" address=195.200.11.110 
+     secret="some_secret" authentication-port=1812 accounting-port=1813 
+     timeout=3s accounting-backup=no realm="" protocol=udp certificate=none
+```
+
+# SNMP
+> Простой протокол управления сетью (SNMP) — это стандартный Интернет-протокол для управления устройствами в IP-сетях. SNMP можно использовать для графического отображения различных данных с помощью таких инструментов, как CACTI, MRTG или The Dude. Поддержка записи SNMP доступна только для некоторых OID. Для поддерживаемых OID поддерживается запись SNMP v1, v2 или v3.
+>
+> ссылка на документацию: https://help.mikrotik.com/docs/spaces/ROS/pages/8978519/SNMP
+
+Для вывода глобальных настроек используется команда:
+```
+snmp print 
+```
+```
+          enabled: yes
+          contact: 
+         location: 
+        engine-id: 
+      trap-target: 
+   trap-community: device
+     trap-version: 3
+  trap-generators: temp-exception
+```
+Для установки прав доступа к данным SNMP используется вкладка SNMP Communities. В версиях v1 и v2c мало безопасности, только строка сообщества в виде открытого текста («имя пользователя») и возможность ограничения доступа по IP-адресу. В производственной среде следует использовать SNMP v3, поскольку он обеспечивает безопасность — авторизация (пользователь + пароль) с MD5/SHA1, шифрование с помощью DES и AES).
+```
+snmp community print detail 
+```
+```
+Flags: * - default, X - disabled 
+ 0 *  name="public" addresses=::/0 security=none read-access=yes write-access=no 
+      authentication-protocol=MD5 encryption-protocol=DES 
+      authentication-password="" encryption-password="" 
+
+ 1    name="device" addresses=192.168.3.0/24 security=private read-access=yes 
+      write-access=no authentication-protocol=SHA1 encryption-protocol=AES 
+      authentication-password="87654321" 
+      encryption-password="12345678" 
 ```
 ## Полезные ссылки
 https://help.mikrotik.com/docs/
