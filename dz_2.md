@@ -307,6 +307,8 @@ Flags: X - disabled; * - builtin
 
 # Wi-Fi
 > Настройка Wi-Fi в MikroTik RouterOS может быть выполнена как вручную, так и с использованием CAPsMAN (Controlled Access Point System Manager). В этом разделе описывается вывод информации о беспроводных протоколах 802.11.
+> Более полная информация здесь:
+https://help.mikrotik.com/docs/spaces/ROS/pages/1409138/Wireless
 
 ```
 interface wireless print detail advanced 
