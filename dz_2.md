@@ -138,15 +138,25 @@ Flags: D - dynamic; X - disabled, I - invalid
 ip route print detail 
 ```
 ```
-Flags: D - dynamic; X - disabled, I - inactive, A - active; 
-c - connect, s - static, r - rip, b - bgp, o - ospf, d - dhcp, v - vpn, m - modem, y - bgp-mpls-vpn; 
-H - hw-offloaded; + - ecmp 
- 0  IsH  dst-address=10.0.0.0/24 routing-table=main pref-src="" gateway=192.168.1.1 immediate-gw="" distance=1 
-         scope=30 target-scope=10 suppress-hw-offload=no 
+Flags: X - disabled, A - active, D - dynamic, 
+C - connect, S - static, r - rip, b - bgp, o - ospf, m - mme, 
+B - blackhole, U - unreachable, P - prohibit
+ 0 A S  dst-address=0.0.0.0/0 gateway=172.16.0.254 
+        gateway-status=172.16.0.254 on VRF-MGMT-NET reachable via  vlan3 
+        distance=1 scope=30 target-scope=10 routing-mark=VRF-MGMT-NET 
 
-   DAc   dst-address=255.255.255.0/32 routing-table=vrf2 gateway=bridge1@vrf2 immediate-gw=bridge1 distance=0 
-         scope=10 suppress-hw-offload=no local-address=192.168.88.1%bridge1@vrf2 
+ 1 ADC  dst-address=172.30.8.0/24 pref-src=172.16.0.130 gateway=vlan3 
+        gateway-status=vlan3 reachable distance=0 scope=10 
+        routing-mark=VRF-MGMT-NET 
+
+ 2 A S  dst-address=0.0.0.0/0 gateway=10.0.0.97 
+        gateway-status=10.0.0.97 reachable via  ISP distance=1 
+        scope=30 target-scope=10 
+
+ 3 ADC  dst-address=192.168.1.0/29 pref-src=192.168.1.8 gateway=vlan131 
+        gateway-status=vlan131 reachable distance=0 scope=10 
 ```
+
 ## VLAN
 > В Mikrotik настройка VLAN происходит в различных вкладках, исходя из решаемых задач.
 > Например, для настройки L2 VLAN (без создания VLAN интерфейсов) необходимо зайти во вкладку interface bridge vlan
@@ -166,6 +176,21 @@ Flags: X - disabled, R - running
  0   name="VLAN2" mtu=1500 l2mtu=1594 mac-address=64:D1:54:87:2D:20 arp=enabled arp-timeout=auto 
      loop-protect=default loop-protect-status=off loop-protect-send-interval=5s loop-protect-disable-time=5m 
      vlan-id=2 interface=ether3 use-service-tag=no 
+```
+
+## Routing BGP
+> используется для управления и конфигурации различных аспектов BGP-маршрутизации:
+> Инстансы (Instances), соседи (Peers), маршруты (Routes), политики (Policies), атрибуты маршрутов (Route Attributes), мониторинг, диагностика и безопасность
+
+```
+routing bgp instance print detail 
+```
+```
+Flags: * - default, X - disabled 
+ 0 *  name="default" as=65530 router-id=0.0.0.0 redistribute-connected=no 
+      redistribute-static=no redistribute-rip=no redistribute-ospf=no 
+      redistribute-other-bgp=no out-filter="" client-to-client-reflection=yes 
+      ignore-as-path-len=no routing-table="
 ```
 
 ## ARP
