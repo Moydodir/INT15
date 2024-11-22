@@ -451,6 +451,91 @@ Flags: * - default
      radius-called-format=mac:ssid radius-mac-caching=disabled group-key-update=5m management-protection=disabled 
      management-protection-key=""
 ```
+
+## CAPsMAN
+> Controlled Access Point System Manager в MikroTik RouterOS предоставляет централизованное управление беспроводными точками доступа (AP). Это позволяет администраторам управлять множеством AP как единым целым, упрощая настройку и мониторинг беспроводных сетей.
+> Полная документация досупна здесь:
+https://help.mikrotik.com/docs/spaces/ROS/pages/7962638/CAPsMAN
+
+Вкладка CAPsMAN содержит большое количество страниц, каждая из которых содержит важную информацию о его настройках. Приведём пример некоторых из них:
+
+Просмотр настроек интерфейсов CAPsMAN:
+```
+caps-man interface print detail 
+```
+```
+Flags: M - master, D - dynamic, B - bound, 
+X - disabled, I - inactive, R - running 
+ 0 MDB  name="2.4GHz-AP-1" mac-address=3C:11:1B:6B:DD:C4 
+        arp-timeout=auto radio-mac=3C:11:1B:6B:DD:C4 master-interface=none 
+        radio-name="2CC81B3B1DC4" configuration=cfg2.4-wifi l2mtu=1600 
+        current-state="running-ap" current-channel="2472/20/gn(16dBm)" 
+        current-rate-set="OFDM:12-54 BW:1x SGI:1x HT:2-7,10-15" 
+        current-basic-rate-set="OFDM:12,24 BW:1x HT:2-7" 
+        current-registered-clients=0 current-authorized-clients=0 
+
+ 1 MDBR name="2.4GHz-AP-2" mac-address=11:22:33:33:55:55 arp-timeout=aut>
+        radio-mac=11:22:33:33:55:55 master-interface=none 
+        radio-name="6C3B6B6CE66D" configuration=cfg2.4-wifi l2mtu=1600 
+        current-state="running-ap" current-channel="2452/20/gn(16dBm)" 
+        current-rate-set="OFDM:12-54 BW:1x SGI:1x HT:2-7,10-15" 
+        current-basic-rate-set="OFDM:12,24 BW:1x HT:2-7" 
+        current-registered-clients=2 current-authorized-clients=2
+```
+Просмотр настроек конфигурационных профилей (профили конфигурации позволяют применять предварительно определенные основные настройки «верхнего уровня» к подготавливаемым точкам доступа):
+```
+caps-man configuration print detail 
+```
+```
+ 0 name="cfg5-wifi" mode=ap ssid="MY-SSID" max-sta-count=32 
+   multicast-helper=full tx-chains=0,1,2,3 rx-chains=0,1,2,3 
+   guard-interval=any country=russia3 installation=indoor distance=indoors 
+   hw-retries=7 hw-protection-mode=none security.authentication-types="" 
+   datapath=datapath3050 channel=channel36-40-44-48/20-lvl3 rates=rate5 
+
+ 1 name="cfg2.4-wifi" mode=ap ssid="MY-SSID-5" max-sta-count=32 
+   multicast-helper=full tx-chains=0,1,2,3 rx-chains=0,1,2,3 
+   guard-interval=any country=russia3 installation=indoor distance=indoors 
+   hw-retries=7 hw-protection-mode=none datapath=datapath3050 
+   channel=channel1-5-9-13/20-lvl3 rates=rate2.4
+```
+Просмотр настроек профилей безопасности:
+```
+caps-man security print detail 
+```
+```
+ 0 name="security-capsman" authentication-types=wpa2-psk encryption=aes-ccm 
+   passphrase="12345678"
+```
+Просмотр ACL:
+```
+caps-man access-list print detail 
+```
+```
+Flags: X - disabled 
+ 0   ;;; WLAN-ACL
+     mac-address=70:80:90:00:10:20 interface=any signal-range=-75..120 
+     allow-signal-out-of-range=5s ssid-regexp="WIFI" action=accept 
+
+ 1   mac-address=70:80:90:00:10:40 interface=any signal-range=-75..120 
+     allow-signal-out-of-range=5s ssid-regexp="WIFI" action=accept 
+
+ 2   mac-address=70:80:90:00:10:30 interface=any signal-range=-75..120 
+     allow-signal-out-of-range=5s ssid-regexp="WIFI" action=accept
+```
+Просмотр настроек профилей данных(настройки Datapath управляют аспектами, связанными с пересылкой данных. VLAN добавляются именно здесь):
+```
+caps-man datapath print 
+```
+```
+ 0 ;;; WIFI-GST
+   name="datapath3050" arp=reply-only client-to-client-forwarding=no 
+   bridge=bridge local-forwarding=no vlan-mode=use-tag vlan-id=3 
+
+ 1 ;;; BM-VID-9
+   name="datapath94" client-to-client-forwarding=yes bridge=bridge 
+   local-forwarding=yes vlan-mode=use-tag vlan-id=9
+```
 # Настройки безопасности
 
 ## ACL
@@ -668,6 +753,21 @@ Flags: * - default, X - disabled
       authentication-password="87654321" 
       encryption-password="12345678" 
 ```
+# Изменения в v7 по сравнению v6
+v7 ROS предоставляет большое количество новвоведений среди которых
+
+### Менеджер пользователей
+> RouterOSv7 предоставляет новую и переработанную реализацию User Manager, конфигурация теперь интегрирована в WinBox и консоль RouterOS (веб-интерфейс настройки администратора недоступен). Прямая миграция из более старой версии User Manager невозможна, можно перенести старую базу данных из /user-manager/database/migrate-legacy-db. Однако, возможно, было бы неплохо начать настройку с нуля. Благодаря User-Manager есть возможность реализовать концепцию BYOD(bring your own device) для возможности использования работниками/клиентами/пользователями своих сетевых устройств в инфраструктуре.
+
+### WireGuard
+> чрезвычайно простой, но быстрый и современный VPN, использующий современную криптографию. Он призван быть быстрее, проще, компактнее и полезнее IPsec, избегая при этом серьезных головных болей. Он намерен быть значительно более производительным, чем OpenVPN. WireGuard разработан как VPN общего назначения для работы как на встроенных интерфейсах, так и на суперкомпьютерах и подходит для самых разных обстоятельств. Первоначально выпущенный для ядра Linux, теперь он является кроссплатформенным (Windows, macOS, BSD, iOS, Android) и широко развертывается.
+
+### Wifiwave2
+> Совершенно новый альтернативный пакет беспроводной связи с поддержкой защиты кадров управления 802.11ac Wave2, WPA3 и 802.11w (требуется процессор ARM и 256 МБ ОЗУ). Пакет Wi-Fi Wave 2 дает возможность работать с такими технологиями как Beamforming и Технология безопасности WPA3. Так же есть возможность работать с Management Protection на Wi-Fi.
+
+Ссылка на полный официальный перечень изменений:
+https://help.mikrotik.com/docs/spaces/ROS/pages/115736772/Upgrading+to+v7
+
 ## Полезные ссылки
 https://help.mikrotik.com/docs/
 https://wiki.mikrotik.com/Manual:IP/Firewall
