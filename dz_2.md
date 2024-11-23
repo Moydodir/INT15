@@ -38,7 +38,43 @@ hAP ac2 (международный) поддерживает диапазон �
 https://mikrotik.com/product/hap_ac2?ysclid=m3pzxz5hnd850531769
 
 # Основные настройки устройства
+## Hardware
+> Для получения информации о текущем состоянии системных ресурсов устройства, таких как процессор, память, дисковое пространство и другие параметры, Mikrotik располагает несколькими командами. 
+```
+ system/resource/print 
+```
+Предоставляют общую информацию о железе устройства, которая может быть полезна для диагностики и мониторинга.
+```
+                   uptime: 2d18h39m30s
+                  version: 7.10.2 (stable)
+               build-time: Jul/12/2023 09:45:11
+         factory-software: 6.29.1
+              free-memory: 21.1MiB
+             total-memory: 64.0MiB
+                      cpu: MIPS 24Kc V7.4
+                cpu-count: 1
+            cpu-frequency: 650MHz
+                 cpu-load: 6%
+           free-hdd-space: 3168.0KiB
+          total-hdd-space: 16.0MiB
+  write-sect-since-reboot: 955
+         write-sect-total: 16250
+        architecture-name: mipsbe
+               board-name: hAP ac lite
+                 platform: MikroTik
+```
+```
+system/package/print detail 
+```
+RouterOS поддерживает множество различных функций, и поскольку для каждой установки требуется определенный набор поддерживаемых функций, можно добавлять или удалять определенные их группы с помощью package system . В результате пользователь может контролировать, какие функции доступны и размер установки. Пакеты предоставляются только MikroTik, и третьим лицам не разрешается их создавать.
+```
+Flags: X - disabled 
+ 0   name="routeros" version="7.10.2" build-time=2023-07-12 09:45:11 
+     git-commit="7dfc65f7332dc0ce25e483b43e37a2cd29c8f96c" scheduled="" 
 
+ 1   name="user-manager" version="7.10.2" build-time=2023-07-12 09:45:11 
+     git-commit="7dfc65f7332dc0ce25e483b43e37a2cd29c8f96c" scheduled=""
+```
 ## Interfaces
 > Содержит основную информацию об интерфейсах. Интерфейсы могут быть Ethernet, Wireless, PPPoE, VPN, VLAN, Bridge.
 ```
@@ -754,6 +790,60 @@ v7 ROS предоставляет большое количество новво
 
 ### Менеджер пользователей
 > RouterOSv7 предоставляет новую и переработанную реализацию User Manager, конфигурация теперь интегрирована в WinBox и консоль RouterOS (веб-интерфейс настройки администратора недоступен). Прямая миграция из более старой версии User Manager невозможна, можно перенести старую базу данных из /user-manager/database/migrate-legacy-db. Однако, возможно, было бы неплохо начать настройку с нуля. Благодаря User-Manager есть возможность реализовать концепцию BYOD(bring your own device) для возможности использования работниками/клиентами/пользователями своих сетевых устройств в инфраструктуре.
+```
+ user-manager/print 
+```
+Содержит общие настройки
+```
+             enabled: no
+  authentication-port: 1812
+      accounting-port: 1813
+          certificate: *2
+         use-profiles: no
+```
+```
+user-manager/router/print detail 
+```
+Содержит список устройств, подключенных к User-Manager
+```
+Flags: X - disabled 
+ 0   name="Home-AP" shared-secret="qwerty" address=172.16.5.252 coa-port=3799 
+
+ 1 X name="AP" shared-secret="qwerty" address=172.16.5.253 coa-port=3799 
+```
+```
+user-manager/user/print detail  
+```
+Содержит список пользователей, их креды и принадлежность к определённой группе
+```
+Flags: X - disabled 
+ 0   name="User1" password="12345678" otp-secret="" group=Employee-PEAP shared-users=1 caller-id=bind 
+     attributes=Framed-IP-Address:10.10.10.15,Framed-IP-Netmask:255.255.255.224 
+
+ 1   name="User1" password="12345678" otp-secret="" group=Lecturers-PEAP shared-users=1 caller-id=bind 
+     attributes=Framed-IP-Address:10.10.10.50,Framed-IP-Netmask:255.255.255.224 
+```
+```
+user-manager/user/group/print detail 
+```
+Содержит заведённые группы, тип аутентификации, VLAN (если мы хотим настроить Dynamic VLAN)
+```
+Flags: * - default 
+ 0 * name="default" default-name="default" 
+     outer-auths=pap,chap,mschap1,mschap2,eap-tls,eap-ttls,eap-peap,eap-mschap2 
+     inner-auths=ttls-pap,ttls-chap,ttls-mschap1,ttls-mschap2,peap-mschap2 attributes="" 
+
+ 1 * name="default-anonymous" default-name="default-anonymous" outer-auths=eap-ttls,eap-peap inner-auths="" 
+     attributes="" 
+
+ 2   name="Employee-PEAP" outer-auths=pap,chap,mschap1,mschap2,eap-tls,eap-ttls,eap-peap,eap-mschap2 
+     inner-auths=ttls-pap,ttls-chap,ttls-mschap1,ttls-mschap2,peap-mschap2 
+     attributes=Mikrotik-Wireless-VLANID:11,Mikrotik-Wireless-VLANIDtype:0 
+
+ 3   name="Lecturers-PEAP" outer-auths=pap,chap,mschap1,mschap2,eap-tls,eap-ttls,eap-peap,eap-mschap2 
+     inner-auths=ttls-pap,ttls-chap,ttls-mschap1,ttls-mschap2,peap-mschap2 
+     attributes=Mikrotik-Wireless-VLANID:12,Mikrotik-Wireless-VLANIDtype:0 
+```
 
 ### WireGuard
 > чрезвычайно простой, но быстрый и современный VPN, использующий современную криптографию. Он призван быть быстрее, проще, компактнее и полезнее IPsec, избегая при этом серьезных головных болей. Он намерен быть значительно более производительным, чем OpenVPN. WireGuard разработан как VPN общего назначения для работы как на встроенных интерфейсах, так и на суперкомпьютерах и подходит для самых разных обстоятельств. Первоначально выпущенный для ядра Linux, теперь он является кроссплатформенным (Windows, macOS, BSD, iOS, Android) и широко развертывается.
