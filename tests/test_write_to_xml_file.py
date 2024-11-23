@@ -41,15 +41,15 @@ class TestWriteToXmlFile(unittest.TestCase):
     def test_invalid_input(self):
         """
         Test handling of invalid input data.
-        Ensures appropriate logging and error messages.
+        Ensures an appropriate exception is raised for invalid input.
         """
-        with self.assertLogs(level='INFO') as log:
+        with self.assertRaises(ValueError) as context:
             write_to_xml_file("invalid_input")
-            self.assertIn(
-                "Error writing file: Input must be a list of SettingModel objects.",
-                log.output[0]
-            )
 
+        self.assertEqual(
+            str(context.exception),
+            "Входные данные должны быть списком объектов SettingModel."
+        )
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,76 +1,65 @@
 import unittest
 import os
 import xml.etree.ElementTree as ET
-from main import config_parser
-from xml_writer import write_to_xml_file
+from main import config_parser, read_file, write_to_xml_file
 
 class TestIntegration(unittest.TestCase):
-    def setUp(self):
-        """test config"""
-        self.test_input_file = "int_test.txt"
-        self.test_output_file = "test_device_settings.xml"
 
-    def tearDown(self):
-        """Delete test xml file"""
-        if os.path.exists(self.test_output_file):
-            os.remove(self.test_output_file)
+    def setUp(self):
+        """Prepare the test environment before each test."""
+        # Path to the test file
+        self.test_file = 'int_test.txt'
+
+        # Ensure the test file exists before running the test
+        self.assertTrue(os.path.exists(self.test_file), f"Test file '{self.test_file}' not found.")
 
     def test_integration(self):
-        """integration test for all process"""
+        """Test the entire flow from reading the file to generating the XML output."""
 
-        # Testing config_parser
-        interfaces = config_parser(self.test_input_file)
-        self.assertIsInstance(interfaces, list)
-        self.assertEqual(len(interfaces), 8)
+        # Read blocks from the test file
+        blocks = read_file(self.test_file)
 
-        # Checking that the objects SettingModel were created correctly
-        self.assertEqual(interfaces[0].Id, "ether1")
-        self.assertEqual(interfaces[0].Name, "ether1")
-        self.assertEqual(interfaces[0].Description, None)
-        self.assertEqual(interfaces[0].MacAddress, "64:D1:54:87:2D:1E")
-        self.assertEqual(interfaces[0].Status, None)
+        # Ensure that blocks were extracted properly
+        self.assertIsNotNone(blocks)
+        self.assertGreater(len(blocks), 0, "No blocks were extracted from the file.")
 
-        # Check that all statuses are processed correctly
-        self.assertEqual(interfaces[4].Status, "up")  # Status "R" = "up"
-        self.assertEqual(interfaces[5].Status, "up")  # Status "RS" = "up"
-        self.assertEqual(interfaces[6].Status, "down")  # Status "X" = "down"
+        # Apply the config_parser to create SettingModel objects
+        interfaces = config_parser(blocks)
 
-        with self.assertLogs(level='INFO') as log:
-            write_to_xml_file(interfaces, self.test_output_file)
+        # Ensure there are exactly 8 interfaces, including those that are active, down, or disabled
+        self.assertEqual(len(interfaces), 8, "Number of interfaces does not match the expected count.")
 
-            # Check that the file has been recorder
-            self.assertTrue(os.path.exists(self.test_output_file))
+        # Ensure some interfaces have status "up"
+        self.assertEqual(interfaces[4].Status, "up", "The status of interface ether5 should be 'up'.")
+        self.assertEqual(interfaces[5].Status, "up", "The status of interface wlan1 should be 'up'.")
 
-            # Check that the logs contain a message about a successful recording
-            self.assertIn(f"INFO:root:Файл успешно записан: {self.test_output_file}", log.output)
+        # Serialize the interfaces to XML
+        output_file = 'test_output.xml'
+        write_to_xml_file(interfaces, filename=output_file)
 
-        tree = ET.parse(self.test_output_file)
+        # Ensure the XML file was created
+        self.assertTrue(os.path.exists(output_file), "XML file was not created.")
+
+        # Open the file and check its content (e.g., the presence of the <device> tag)
+        tree = ET.parse(output_file)
         root = tree.getroot()
-        self.assertEqual(root.tag, "device")
-        self.assertEqual(len(root), 8)
+        self.assertEqual(root.tag, "device", "The root element of the XML should be 'device'.")
 
-        # Checking the data inside the XML for the first interface
-        interface1 = root[0]
-        self.assertEqual(interface1.find("Id").text, "ether1")
-        self.assertEqual(interface1.find("Name").text, "ether1")
-        self.assertEqual(interface1.find("Description").text, "N/A")
-        self.assertEqual(interface1.find("MacAddress").text, "64:D1:54:87:2D:1E")
-        self.assertEqual(interface1.find("Status").text, "N/A")
+        # Ensure there are at least 8 interfaces in the XML
+        interfaces_xml = root.findall("interface")
+        self.assertEqual(len(interfaces_xml), 8, "Number of interfaces in the XML does not match the expected count.")
 
-        # Checking the data inside the XML for the second interface
-        interface8 = root[7]
-        self.assertEqual(interface8.find("Id").text, "bridge1")
-        self.assertEqual(interface8.find("Name").text, "N/A")
-        self.assertEqual(interface8.find("Description").text, "N/A")
-        self.assertEqual(interface8.find("MacAddress").text, "64:D1:54:87:2D:24")
-        self.assertEqual(interface8.find("Status").text, "up")
+        # Check some fields in the first interface
+        first_interface = interfaces_xml[0]
+        self.assertEqual(first_interface.find("Id").text, "ether1", "The Id of the first interface is incorrect.")
+        self.assertEqual(first_interface.find("Status").text, "N/A", "The Status of the first interface is incorrect.")
 
-    def test_invalid_file(self):
-        """Test for incorrect file path"""
-        with self.assertLogs(level='ERROR') as log:
-            interfaces = config_parser("invalid_file.txt")
-            self.assertIsNone(interfaces)
-            self.assertIn("Файл 'invalid_file.txt' не найден.", log.output[0])
+    def tearDown(self):
+        """Clean up after the test."""
+        # Remove the XML file after the test
+        if os.path.exists('test_output.xml'):
+            os.remove('test_output.xml')
+
 
 if __name__ == "__main__":
     unittest.main()

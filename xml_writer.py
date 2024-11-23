@@ -17,3 +17,5 @@ def write_to_xml_file(interfaces, filename="device_settings.xml"):
 
     tree.write(filename, encoding="utf-8", xml_declaration=True)
     logging.info(f"Файл успешно записан: {filename}")
+
+    return tree

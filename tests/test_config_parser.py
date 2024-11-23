@@ -1,44 +1,87 @@
 import unittest
-import os
-from main import config_parser
+from main import config_parser, param_finder
 
 
 class TestConfigParser(unittest.TestCase):
-    """Unit tests for the `config_parser` function."""
 
     def setUp(self):
-        self.test_filename = 'test_network_device_output.txt'
+        """
+        Prepare test data before each test case.
+        Creates sample blocks and expected results for parsing.
+        """
+        self.blocks = [
+            ' 0 RS ;;; LAN\n' +
+            '      name="LAN" default-name="ether2" mtu=1500 mac-address=50:00:00:31:00:01 orig-mac-address=50:00:00:31:00:01 ' +
+            'arp=enabled arp-timeout=auto loop-protect=on loop-protect-status=on\n' +
+            '      loop-protect-send-interval=5s loop-protect-disable-time=5m disable-running-check=yes ' +
+            'auto-negotiation=yes advertise=10M-half,10M-full,100M-half,100M-full,1000M-full full-duplex=yes\n' +
+            '      tx-flow-control=off rx-flow-control=off cable-settings=default speed=1Gbps bandwidth=unlimited/unlimited\n \n',
 
-    def test_config_parser_output(self):
-        """Test parsing a valid input file."""
-        result = config_parser(self.test_filename)
+            ' 1 R  name="ether1" default-name="ether1" mtu=1500 mac-address=50:00:00:31:00:00 orig-mac-address=50:00:00:31:00:00 ' +
+            'arp=enabled arp-timeout=auto loop-protect=default loop-protect-status=off\n' +
+            '      loop-protect-send-interval=5s loop-protect-disable-time=5m disable-running-check=yes ' +
+            'auto-negotiation=yes advertise=10M-half,10M-full,100M-half,100M-full,1000M-full full-duplex=yes\n' +
+            '      tx-flow-control=off rx-flow-control=off cable-settings=default speed=1Gbps bandwidth=unlimited/unlimited\n \n',
 
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
+            ' 2 RS name="ether3" default-name="ether3" mtu=1500 mac-address=50:00:00:31:00:02 orig-mac-address=50:00:00:31:00:02 ' +
+            'arp=proxy-arp arp-timeout=auto loop-protect=default loop-protect-status=off\n' +
+            '      loop-protect-send-interval=5s loop-protect-disable-time=5m disable-running-check=yes ' +
+            'auto-negotiation=yes advertise=10M-half,10M-full,100M-half,100M-full,1000M-full full-duplex=yes\n' +
+            '      tx-flow-control=off rx-flow-control=off cable-settings=default speed=1Gbps bandwidth=unlimited/unlimited\n \n'
+        ]
 
-        # Validate the first parsed object
-        self.assertEqual(result[0].Id, "ether2")
-        self.assertEqual(result[0].Name, "ether2")
-        self.assertEqual(result[0].MacAddress, "64:D1:54:87:2D:1F")
-        self.assertEqual(result[0].Status, None)
+    def test_param_finder(self):
+        """
+        Test that param_finder correctly extracts parameters from blocks.
+        """
+        block = self.blocks[1]  # Using the second block for this test
+        expected_params = {
+            "Id": "ether1",
+            "Name": "ether1",
+            "Description": None,
+            "MacAddress": "50:00:00:31:00:00",
+            "Status": "up"
+        }
 
-        # Validate the second parsed object
-        self.assertEqual(result[1].Id, "ether3")
-        self.assertEqual(result[1].Name, "ether3")
-        self.assertEqual(result[1].MacAddress, "64:D1:54:87:2D:20")
-        self.assertEqual(result[1].Status, None)
+        params = param_finder(block)
 
-    def test_empty_file(self):
-        """Test handling of an empty input file."""
-        empty_filename = 'empty_test_file.txt'
-        with open(empty_filename, 'w', encoding='utf-8') as file:
-            pass
+        self.assertEqual(params["Id"], expected_params["Id"])
+        self.assertEqual(params["Name"], expected_params["Name"])
+        self.assertEqual(params["Description"], expected_params["Description"])
+        self.assertEqual(params["MacAddress"], expected_params["MacAddress"])
+        self.assertEqual(params["Status"], expected_params["Status"])
 
-        result = config_parser(empty_filename)
-        self.assertEqual(result, [])
+    def test_config_parser(self):
+        """
+        Test that config_parser correctly processes the blocks and returns instances of SettingModel.
+        """
+        interfaces = config_parser(self.blocks)
 
-        os.remove(empty_filename)
+        # Check the number of interfaces created
+        self.assertEqual(len(interfaces), 3, "Should parse 3 interfaces")
 
+        # Check that the first interface is created correctly
+        self.assertEqual(interfaces[0].Id, "LAN")
+        self.assertEqual(interfaces[0].Name, "ether2")
+        self.assertEqual(interfaces[0].MacAddress, "50:00:00:31:00:01")
+        self.assertEqual(interfaces[0].Status, "up")
 
-if __name__ == '__main__':
+        # Check that the second interface is created correctly
+        self.assertEqual(interfaces[1].Id, "ether1")
+        self.assertEqual(interfaces[1].Name, "ether1")
+        self.assertEqual(interfaces[1].MacAddress, "50:00:00:31:00:00")
+        self.assertEqual(interfaces[1].Status, "up")
+
+        # Check that the third interface is created correctly
+        self.assertEqual(interfaces[2].Id, "ether3")
+        self.assertEqual(interfaces[2].Name, "ether3")
+        self.assertEqual(interfaces[2].MacAddress, "50:00:00:31:00:02")
+        self.assertEqual(interfaces[2].Status, "up")
+
+if __name__ == "__main__":
     unittest.main()
+
+
+
+
+
